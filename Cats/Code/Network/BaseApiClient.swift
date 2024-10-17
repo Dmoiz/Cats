@@ -8,7 +8,7 @@
 import Foundation
 
 class BaseApiClient {
-    enum RequestType {
+    enum RequestType: String {
         case POST
         case GET
         case DELETE
@@ -22,31 +22,41 @@ class BaseApiClient {
             return URL(string: "")!
         }
     }
+
+    private let header = [
+        "x-api-key": "\(Environment.shared.apiKey)",
+        "Content-Type": "application/json"
+    ]
     
-    private var apiKey = Environment.shared.apiKey
-    
-    func request(path: String, type: RequestType, parameters: [URLQueryItem]? = []) async throws -> (Data, HTTPURLResponse){
+    func request(path: String, type: RequestType, queryItems: [URLQueryItem]? = [], params: [String: Any]? = nil) async throws -> (Data, HTTPURLResponse){
         
-        let url = baseURL.appendingPathComponent(path)
+        var urlComponentes = URLComponents(url: baseURL.appendingPathComponent(path), resolvingAgainstBaseURL: true)
+        
+        urlComponentes?.queryItems = queryItems
+        
+        guard let url = urlComponentes?.url else {
+            throw NetworkError.generic
+        }
         var request = URLRequest(url: url)
-        request.setValue(apiKey, forHTTPHeaderField: "x-api-key")
-        request.setValue("application/json", forHTTPHeaderField: "Content-Type")
+        request.httpMethod = type.rawValue
+        request.allHTTPHeaderFields = header
+        
+        if let bodyParams = params {
+            let jsonData = try! JSONSerialization.data(withJSONObject: bodyParams, options: [])
+            request.httpBody = jsonData
+        }
         
         let (data, response) = try await URLSession.shared.data(for: request)
         
         guard let response = response as? HTTPURLResponse else {
-            throw NetworkError.badResponse
-        }
-        
-        if response.statusCode == 200 {
-            return (data, response)
+            throw NetworkError.generic
         }
         
         switch response.statusCode {
-        case 401:
-            throw NetworkError.unauthorized
-        case 522:
-            throw NetworkError.serviceDown
+        case 200:
+            return (data, response)
+        case 503:
+            throw NetworkError.serviceUnavailbale
         case 404:
             throw NetworkError.notFound
         default:
