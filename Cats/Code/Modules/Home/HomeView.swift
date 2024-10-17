@@ -1,15 +1,16 @@
 //
-//  ContentView.swift
+//  HomeView.swift
 //  Cats
 //
-//  Created by Diego Moreno on 15/10/24.
+//  Created by Diego Moreno on 17/10/24.
 //
 
 import SwiftUI
 
-struct ContentView: View {
+struct HomeView: View {
     
     @EnvironmentObject var rootManager: RootManager
+    @StateObject var vm: HomeViewModel
     
     var body: some View {
         BaseView(content: content)
@@ -19,14 +20,14 @@ struct ContentView: View {
         VStack {
             Text("Hola")
             Button {
-                rootManager.popToLast()
+                vm.soFunny()
             } label: {
-                Text("Ho to g 2 o")
+                Text("Ho to go")
             }
         }
     }
 }
 
 #Preview {
-    ContentView()
+    HomeWireframe(rootManager: RootManager()).preview()
 }

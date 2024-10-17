@@ -7,7 +7,7 @@
 
 import Foundation
 
-enum NetworkError: Error {
+enum BaseError: Error {
     case generic
     case serviceUnavailbale//503
     case notFound//404
@@ -38,7 +38,6 @@ enum NetworkError: Error {
         return descriptionError
     }
 }
-
 
 struct DescriptionError {
     var title, description, button: String

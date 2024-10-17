@@ -35,7 +35,7 @@ class BaseApiClient {
         urlComponentes?.queryItems = queryItems
         
         guard let url = urlComponentes?.url else {
-            throw NetworkError.generic
+            throw BaseError.generic
         }
         var request = URLRequest(url: url)
         request.httpMethod = type.rawValue
@@ -49,18 +49,18 @@ class BaseApiClient {
         let (data, response) = try await URLSession.shared.data(for: request)
         
         guard let response = response as? HTTPURLResponse else {
-            throw NetworkError.generic
+            throw BaseError.generic
         }
         
         switch response.statusCode {
         case 200:
             return (data, response)
         case 503:
-            throw NetworkError.serviceUnavailbale
+            throw BaseError.serviceUnavailbale
         case 404:
-            throw NetworkError.notFound
+            throw BaseError.notFound
         default:
-            throw NetworkError.unknown
+            throw BaseError.unknown
         }
     }
 }
